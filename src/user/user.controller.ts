@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -39,6 +39,16 @@ export class UserController {
     } catch (error) {
       console.error('Error finding user by ID:', error);
       throw new Error('Error finding user by ID');
+    }
+  }
+
+  @Delete(':id')
+  async deleteUser(@Param('id') id: number): Promise<void> {
+    try {
+      await this.userService.deleteUser(id);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw new Error('Error deleting user');
     }
   }
 }

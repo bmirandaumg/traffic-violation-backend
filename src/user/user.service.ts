@@ -34,6 +34,14 @@ export class UserService {
       throw new InternalServerErrorException('Error creating user');
     }
   }
+  
+    async deleteUser(id: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.userRepository.remove(user);
+  }
 
   // Encontrar un usuario por su nombre de usuario
   async findByUsername(username: string): Promise<UserE | undefined> {
