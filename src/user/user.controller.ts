@@ -10,9 +10,10 @@ export class UserController {
     @Body('username') username: string,
     @Body('password') password: string,
     @Body('email') email: string,
+    @Body('roleId') roleId: number,
   ) {
     try {
-      return await this.userService.createUser(username, password, email);
+      return await this.userService.createUser(username, password, email, roleId);
     } catch (error) {
       console.error('Error registering user:', error);
       throw new Error('Error registering user');

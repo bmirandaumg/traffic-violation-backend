@@ -21,10 +21,13 @@ export class UserService {
   }
 
   // Crear un nuevo usuario y hashear la contraseña antes de guardarlo
-  async createUser(username: string, plainPassword: string, email: string): Promise<UserE> {
+  async createUser(username: string, plainPassword: string, email: string, roleId: number): Promise<UserE> {
     try {
       const hashedPassword = await this.hashPassword(plainPassword);
-      const newUser = this.userRepository.create({ username, password: hashedPassword, email });
+      // Busca el rol por id
+      const role = await this.roleRepository.findOne({ where: { id: roleId } });
+      if (!role) throw new InternalServerErrorException('Role not found');
+      const newUser = this.userRepository.create({ username, password: hashedPassword, email, role });
       return this.userRepository.save(newUser);
     } catch (error) {
       console.error('Error creating user:', error);
