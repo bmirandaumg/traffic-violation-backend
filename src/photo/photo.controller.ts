@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Query, Req, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, Req, UseGuards, BadRequestException, Post, Body } from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -24,7 +24,15 @@ export class PhotoController {
 
     return this.photoService.getFilteredPhotos(photoDate, idCruiseNumber, pageNumber, limitNumber);
   }
-
+    @Post('reject')
+  async rejectPhoto(
+    @Body('photoId') photoId: number,
+    @Body('userId') userId: number,
+    @Body('rejectionReasonId') rejectionReasonId: number,
+  ) {
+    return this.photoService.rejectPhoto(photoId, userId, rejectionReasonId);
+  }
+  
   @Patch(':id/take')
   async takePhoto(@Param('id') id: number, @Req() req: any) {
     const userId = req.user.id;

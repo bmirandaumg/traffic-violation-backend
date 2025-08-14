@@ -3,6 +3,7 @@ import { Photo } from '../photo/photo.entity';
 import { UserE } from '../user/user.entity';
 import { RejectionReason } from '../rejection-reason/rejection-reason.entity';
 
+
 @Entity('processed_photo')  // Nombre de la tabla en la base de datos
 export class ProcessedPhoto {
   @PrimaryGeneratedColumn()
