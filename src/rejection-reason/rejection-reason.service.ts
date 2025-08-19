@@ -10,18 +10,27 @@ export class RejectionReasonService {
     private readonly rejectionReasonRepository: Repository<RejectionReason>,
   ) {}
 
-  // Crear un nuevo motivo de rechazo
+  // Add rejected reason
   async create(description: string): Promise<RejectionReason> {
     const rejectionReason = this.rejectionReasonRepository.create({ description });
     return this.rejectionReasonRepository.save(rejectionReason);
   }
+  
+  //delete rejected reason
+    async delete(id: number): Promise<void> {
+    const reason = await this.rejectionReasonRepository.findOne({ where: { id } });
+    if (!reason) {
+      throw new NotFoundException('Rejection reason not found');
+    }
+    await this.rejectionReasonRepository.remove(reason);
+  }
 
-  // Listar todos los motivos de rechazo
+  // List all rejected reasons
   async findAll(): Promise<RejectionReason[]> {
     return this.rejectionReasonRepository.find();
   }
 
-  // Obtener un motivo de rechazo por ID
+  // Get a rejected reason by ID
   async findById(id: number): Promise<RejectionReason> {
     const reason = await this.rejectionReasonRepository.findOne({ where: { id } });
     if (!reason) {

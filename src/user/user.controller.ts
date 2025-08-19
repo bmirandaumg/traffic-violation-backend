@@ -1,6 +1,10 @@
-import { Controller, Get, Post, Body, Param, Query, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Delete, UseGuards, SetMetadata } from '@nestjs/common';
 import { UserService } from './user.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from './role.guard';
 
+@SetMetadata('roles', ['admin'])
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -19,6 +23,12 @@ export class UserController {
       throw new Error('Error registering user');
     }
   }
+
+  //Endpoint to list roles
+  @Get('roles')
+async getAllRoles() {
+  return this.userService.getAllRoles();
+}
 
   // Endpoint para buscar por username
   @Get('find-by-username')

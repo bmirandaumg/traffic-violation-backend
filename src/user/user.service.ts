@@ -1,3 +1,4 @@
+
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -33,6 +34,10 @@ export class UserService {
       console.error('Error creating user:', error);
       throw new InternalServerErrorException('Error creating user');
     }
+  }
+
+    async getAllRoles(): Promise<Role[]> {
+    return this.roleRepository.find();
   }
   
     async deleteUser(id: number): Promise<void> {
