@@ -30,4 +30,7 @@ export class Photo {
   @ManyToOne(() => Cruise, (cruise) => cruise.photos)
   @JoinColumn({ name: 'id_cruise' })  // Une la relación usando id_cruise
   cruise: Cruise;
+
+  @Column({ type: 'jsonb', default: {} })
+  photo_info: any;
 }
