@@ -40,6 +40,7 @@ return this.photoRepository.createQueryBuilder('photo')
   .andWhere('(photo.locked_by IS NULL AND (photo.locked_at IS NULL OR photo.locked_at <= :oneHourAgo))', { oneHourAgo })
   .skip(skip)
   .take(limit)
+  .orderBy('photo.id')
   .getManyAndCount();
   }
 

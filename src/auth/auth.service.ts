@@ -29,7 +29,7 @@ export class AuthService {
   async login(user: UserE) {
     const payload = { username: user.username, sub: user.id, role: user.role };
     return {
-      access_token: this.jwtService.sign(payload),  // Retorna el JWT firmado
+      access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),  // Retorna el JWT firmado
     };
   }
 }
