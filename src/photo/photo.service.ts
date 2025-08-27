@@ -6,6 +6,9 @@ import { ProcessedPhoto } from '../processed-photo/processed-photo.entity';
 import { PhotoRejected } from '../processed-photo/photo-rejected.entity';
 import { PhotoGateway } from './photo.gateway';
 import { addHours } from 'date-fns';
+import axios from 'axios';
+import { buildSoapRequestSat } from 'src/utils/soap-templates';
+import {parseStringPromise} from 'xml2js';
 
 
 @Injectable()
@@ -69,6 +72,54 @@ return this.photoRepository.createQueryBuilder('photo')
     });
     await this.photoRejectedRepository.save(photoRejected);
   }
+
+  async consultarVehiculo(pPlaca: string, pTipo: string): Promise<any> {
+  const url = process.env.SOAP_URL_SAT;
+  const pUsuario = process.env.SOAP_USER_SAT;
+  const pClave = process.env.SOAP_PASS_SAT;
+
+  const xml = buildSoapRequestSat(pUsuario, pClave, pTipo, pPlaca);
+
+  const headers = {
+    'Content-Type': 'text/xml; charset=utf-8',
+    'SOAPAction': '""',
+  };
+
+  const response = await axios.post(url, xml, { headers });
+  const json = await parseStringPromise(response.data, { explicitArray: false });
+
+  // 1. Extraer el XML interno
+  const xmlInterno = json['soapenv:Envelope']
+    ?.['soapenv:Body']
+    ?.['ns1:datosGralesVehResponse']
+    ?.datosGralesVehReturn
+    ?._;
+
+  if (!xmlInterno) {
+    return { error: 'No se encontró la respuesta interna del SAT', raw: json };
+  }
+
+  // 2. Parsear el XML interno a JSON
+  const datosVehiculo = await parseStringPromise(xmlInterno, { explicitArray: false });
+
+  // 3. Devolver solo la parte útil y legible
+  if (datosVehiculo.MSG_RESPUESTA?.DATOSGEN) {
+    const datos = datosVehiculo.MSG_RESPUESTA.DATOSGEN;
+    return {
+      ESTADO: datos.ESTAD,
+      PLACA: datos.PLACA,
+      MARCA: datos.MARCA,
+      LINEA: datos.LINEA,
+      MODELO: datos.MODELO,
+      COLOR: datos.COLOR,
+      TIPO: datos.TIPO,
+      USO: datos.USO,
+      CC: datos.CC,
+    };
+  } else {
+    return datosVehiculo.MSG_RESPUESTA;
+  }
+}
 
   async lockPhoto(photoId: number, userId: number): Promise<void> {
     await this.photoRepository.update(photoId, {

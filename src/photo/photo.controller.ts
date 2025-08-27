@@ -32,6 +32,10 @@ export class PhotoController {
   ) {
     return this.photoService.rejectPhoto(photoId, userId, rejectionReasonId);
   }
+  @Post('consultar-vehiculo')
+async consultarVehiculo(@Body('placa') placa: string, @Body('tipo') tipo: string) {
+  return this.photoService.consultarVehiculo(placa, tipo);
+}
   
   @Patch(':id/take')
   async takePhoto(@Param('id') id: number, @Req() req: any) {
