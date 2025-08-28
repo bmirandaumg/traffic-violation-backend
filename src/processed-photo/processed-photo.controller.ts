@@ -23,6 +23,26 @@ export class ProcessedPhotoController {
     );
   }
 
+@Post('send-speed-event')
+  async sendSpeedEvent(@Body() body: {
+    cruise: string;
+    timestamp: string;
+    speed_limit_kmh: number;
+    current_speed_kmh: number;
+    lpNumber: string;
+    lpType: string;
+  }) {
+    return this.processedPhotoService.sendSpeedEvent(
+      body.cruise,
+      body.timestamp,
+      body.speed_limit_kmh,
+      body.current_speed_kmh,
+      body.lpNumber,
+      body.lpType,
+    );
+  }
+
+
   // Endpoint para obtener todas las fotos procesadas
   @Get()
   async findAll() {

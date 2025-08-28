@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { ProcessedPhoto } from './processed-photo.entity';
 import { Photo } from '../photo/photo.entity';
 import { UserE } from '../user/user.entity';
-
+import axios from 'axios';
 @Injectable()
 export class ProcessedPhotoService {
   constructor(
@@ -40,6 +40,40 @@ export class ProcessedPhotoService {
     });
 
     return this.processedPhotoRepository.save(processedPhoto);
+  }
+
+  async sendSpeedEvent(
+    cruise:string,
+    timestamp:string,
+    speed_limit_kmh:number,
+    current_speed_kmh:number,
+    lpNumber:string,
+    lpType:string,
+  ): Promise<void> {
+    const urlProcessedPhoto = process.env.SPEED_EVENTS_URL;
+    const payload = {
+      cruise,
+      timestamp,
+      speed_limit_kmh,
+      current_speed_kmh,
+      lpNumber,
+      lpType,
+    };
+
+    try{
+      const response = await axios.post(urlProcessedPhoto, payload,{
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data;
+    }catch (error) {
+      throw new Error(
+        `Error al enviar el evento de velocidad: ${error.response?.data?.message || error.message}`,
+      );
+    }
+
+
   }
 
   // Obtener todas las fotos procesadas
