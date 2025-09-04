@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Photo } from './photo.entity';
+import { Photo } from '../../photo/photo.entity';
+
 
 @Entity('cruise')  // Nombre de la tabla
 export class Cruise {

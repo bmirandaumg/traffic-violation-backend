@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Cruise } from './cruise.entity';
-
+import { Cruise } from '../cruise/entities/cruise.entity';
 @Entity()
 export class Photo {
   @PrimaryGeneratedColumn()

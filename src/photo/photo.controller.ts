@@ -17,6 +17,7 @@ export class PhotoController {
     const idCruiseNumber = Number(idCruise);
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
+    console.log({ photoDate, idCruiseNumber, pageNumber, limitNumber });
 
     if (isNaN(idCruiseNumber) || isNaN(pageNumber) || isNaN(limitNumber)) {
       throw new BadRequestException('Invalid query parameters');

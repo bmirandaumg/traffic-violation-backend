@@ -1,0 +1,34 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { CruiseService } from './cruise.service';
+import { CreateCruiseDto } from './dto/create-cruise.dto';
+import { UpdateCruiseDto } from './dto/update-cruise.dto';
+
+@Controller('cruise')
+export class CruiseController {
+  constructor(private readonly cruiseService: CruiseService) {}
+
+  @Post()
+  create(@Body() createCruiseDto: CreateCruiseDto) {
+    return this.cruiseService.create(createCruiseDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.cruiseService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.cruiseService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateCruiseDto: UpdateCruiseDto) {
+    return this.cruiseService.update(+id, updateCruiseDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.cruiseService.remove(+id);
+  }
+}
