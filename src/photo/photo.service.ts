@@ -1,3 +1,6 @@
+
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, IsNull, LessThanOrEqual } from 'typeorm';
@@ -22,6 +25,36 @@ export class PhotoService {
     @InjectRepository(PhotoRejected)
     private readonly photoRejectedRepository: Repository<PhotoRejected>,
   ) {}
+
+  /**
+   * Devuelve la foto por su ID
+   */
+  async getPhotoById(photoId: number): Promise<Photo | null> {
+    return this.photoRepository.findOne({ where: { id: photoId } });
+  }
+  
+
+  /**
+   * Elimina la foto de la base de datos y borra el archivo físico usando photo_path
+   */
+  async deletePhotoAndFile(photoId: number): Promise<void> {
+    // Buscar la foto por ID
+    const photo = await this.photoRepository.findOne({ where: { id: photoId } });
+    if (!photo) throw new NotFoundException('Photo not found');
+
+
+    // Construir la ruta absoluta al archivo
+    const absolutePath = path.join(process.cwd(), photo.photo_path);
+    try {
+      await fs.unlink(absolutePath);
+    } catch (err) {
+      // Si el archivo no existe, solo loguea el error pero no detiene el proceso
+      console.warn(`No se pudo eliminar el archivo: ${absolutePath}`, err);
+    }
+
+    // Eliminar la foto de la base de datos
+    await this.photoRepository.delete(photoId);
+  }
 
   async getFilteredPhotos(
     photoDate: string,

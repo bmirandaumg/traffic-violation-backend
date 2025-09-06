@@ -1,4 +1,8 @@
-import { Controller, Get, Patch, Param, Query, Req, UseGuards, BadRequestException, Post, Body } from '@nestjs/common';
+
+import { 
+  Controller, UseGuards, Delete, Param, BadRequestException, 
+  Get, Query, Post, Body, Patch, Req 
+} from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -6,6 +10,33 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @UseGuards(JwtAuthGuard) 
 export class PhotoController {
   constructor(private readonly photoService: PhotoService) {}
+
+  @Get(':id')
+  async getPhotoById(@Param('id') id: string) {
+    const photoId = Number(id);
+    if (isNaN(photoId)) {
+      throw new BadRequestException('ID inválido');
+    }
+    const photo = await this.photoService.getPhotoById(photoId);
+    if (!photo) {
+      throw new BadRequestException('Foto no encontrada');
+    }
+    return {
+      id: photo.id,
+      photo_path: photo.photo_path,
+      photo_info: photo.photo_info,
+    };
+  }
+
+  @Delete(':id')
+  async deletePhoto(@Param('id') id: string) {
+    const photoId = Number(id);
+    if (isNaN(photoId)) {
+      throw new BadRequestException('ID inválido');
+    }
+    await this.photoService.deletePhotoAndFile(photoId);
+    return { message: 'Foto y archivo eliminados correctamente' };
+  }
 
   @Get()
   async getPhotos(
