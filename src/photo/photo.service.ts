@@ -42,17 +42,39 @@ export class PhotoService {
     const photo = await this.photoRepository.findOne({ where: { id: photoId } });
     if (!photo) throw new NotFoundException('Photo not found');
 
+    // Resolver ruta del archivo de forma robusta
+    // - Si `photo_path` es absoluta, se usa tal cual
+    // - Si es relativa, se antepone `IMAGES_BASE_DIR` (si existe) o `process.cwd()`
+    // - Se normaliza para evitar segmentos redundantes
+    const rawPath = (photo.photo_path || '').trim();
+    const isUrl = /^https?:\/\//i.test(rawPath);
+    if (!isUrl && rawPath) {
+      const baseDir = process.env.IMAGES_BASE_DIR
+        ? path.resolve(process.env.IMAGES_BASE_DIR)
+        : process.cwd();
 
-    // Construir la ruta absoluta al archivo
-    const absolutePath = path.join(process.cwd(), photo.photo_path);
-    try {
-      await fs.unlink(absolutePath);
-    } catch (err) {
-      // Si el archivo no existe, solo loguea el error pero no detiene el proceso
-      console.warn(`No se pudo eliminar el archivo: ${absolutePath}`, err);
+      const resolvedPath = path.isAbsolute(rawPath)
+        ? path.normalize(rawPath)
+        : path.normalize(path.join(baseDir, rawPath));
+
+      console.log('[deletePhotoAndFile] Intentando eliminar archivo:', resolvedPath);
+      try {
+        // rm con force evita ENOENT si el archivo no existe
+        await fs.rm(resolvedPath, { force: true });
+        console.log('[deletePhotoAndFile] Archivo eliminado (o no existía):', resolvedPath);
+      } catch (err) {
+        // En la práctica, rm con force no lanza para ENOENT; si algo más falla, se registra el mensaje breve
+        console.warn('[deletePhotoAndFile] Error al eliminar archivo:', resolvedPath, (err as any)?.message || err);
+      }
+    } else {
+      if (!rawPath) {
+        console.warn('[deletePhotoAndFile] photo_path vacío; no hay archivo que eliminar');
+      } else {
+        console.warn('[deletePhotoAndFile] photo_path parece ser una URL; omitiendo eliminación de archivo:', rawPath);
+      }
     }
 
-    // Eliminar la foto de la base de datos
+    // Eliminar la foto de la base de datos (siempre, aun si el archivo no existe)
     await this.photoRepository.delete(photoId);
   }
 
