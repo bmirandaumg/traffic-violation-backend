@@ -147,7 +147,6 @@ export class PhotoService {
         photo_name: photo.photo_name,
         photo_status,
         id_cruise: photo.id_cruise,
-        photo_info: photo.photo_info,
         photo_base64,
       });
     }
