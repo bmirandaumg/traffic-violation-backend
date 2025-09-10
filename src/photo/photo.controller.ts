@@ -21,10 +21,66 @@ export class PhotoController {
     if (!photo) {
       throw new BadRequestException('Foto no encontrada');
     }
+
+    // Lógica para devolver base64
+    let photo_base64 = null;
+    const rawPath = (photo.photo_path || '').trim();
+    const isUrl = /^https?:\/\//i.test(rawPath);
+    if (!isUrl && rawPath) {
+      const path = await import('path');
+      const fs = await import('fs/promises');
+      const baseDir = process.env.IMAGES_BASE_DIR
+        ? path.resolve(process.env.IMAGES_BASE_DIR)
+        : process.cwd();
+      const resolvedPath = path.isAbsolute(rawPath)
+        ? path.normalize(rawPath)
+        : path.normalize(path.join(baseDir, rawPath));
+      try {
+        const buffer = await fs.readFile(resolvedPath);
+        photo_base64 = buffer.toString('base64');
+      } catch (err) {
+        photo_base64 = null;
+      }
+    }
+
+    // Extraer y separar el plate
+    let plate = (photo.photo_info?.vehicle?.plate || '')
+      .replace(/\s+/g, '') // quitar espacios
+      .replace(/[^a-zA-Z0-9]/g, ''); // quitar cualquier símbolo que no sea letra o número
+    let prefix = '', numbers = '', suffix = '';
+    let plateMessage = undefined;
+    const match = plate.match(/^([A-Za-z]+)?(\d+)([A-Za-z]+)?$/);
+    if (match) {
+      prefix = match[1] || '';
+      numbers = match[2] || '';
+      suffix = match[3] || '';
+    } else {
+      plateMessage = 'Placa no encontrada o formato no válido';
+    }
+
+    // Preparar datos para consultar-vehiculo
+    let consultaVehiculo = null;
+    if (numbers && suffix && prefix) {
+      const placa = numbers + suffix;
+      const tipo = prefix + '0';
+      try {
+        consultaVehiculo = await this.photoService.consultarVehiculo(placa, tipo);
+      } catch (err) {
+        consultaVehiculo = { error: 'Error al consultar vehículo', detalle: (err as any)?.message || err };
+      }
+    }
+
     return {
       id: photo.id,
-      photo_path: photo.photo_path,
       photo_info: photo.photo_info,
+      plate_parts: {
+        prefix,
+        numbers,
+        suffix,
+        message: plateMessage,
+      },
+      consultaVehiculo,
+      photo_base64,
     };
   }
 
