@@ -9,7 +9,13 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('photos')
 @UseGuards(JwtAuthGuard) 
 export class PhotoController {
-  constructor(private readonly photoService: PhotoService) {}
+  constructor(
+    private readonly photoService: PhotoService,
+  ) {}
+
+
+
+  // El endpoint send-speed-event debe estar en ProcessedPhotoController, no aquí.
 
   @Get(':id')
   async getPhotoById(@Param('id') id: string) {
@@ -70,15 +76,59 @@ export class PhotoController {
       }
     }
 
+    // Extraer speedLimit y measuredSpeed como números si existen
+    let speedLimit = null;
+    let measuredSpeed = null;
+    if (photo.photo_info) {
+      // speedLimit: puede venir como "70 km/h"
+      if (photo.photo_info.speedLimit) {
+        const match = String(photo.photo_info.speedLimit).match(/(-?\d+)/);
+        speedLimit = match ? Number(match[1]) : null;
+      }
+      // measuredSpeed: puede venir como "-80 km/h (DEP)"
+      if (photo.photo_info.measuredSpeed) {
+        const match = String(photo.photo_info.measuredSpeed).match(/(-?\d+)/);
+        measuredSpeed = match ? Math.abs(Number(match[1])) : null;
+      }
+    }
+
+    // Excluir campos no deseados de photo_info y preparar timestamp
+    const { distance, fileName, videoNumber, serialNumber, date, time, ...filteredPhotoInfo } = photo.photo_info || {};
+
+    // Construir timestamp ISO 8601 si date y time existen
+    let timestamp = null;
+    if (date && time) {
+      // date: "03/07/2024", time: "06:24:27"
+      // Convertir a "2024-07-03T06:24:27-06:00" (asumiendo zona horaria local)
+      const [day, month, year] = date.split('/');
+      if (day && month && year) {
+        // Obtener offset de zona horaria local
+        const offset = (() => {
+          const tzOffset = new Date().getTimezoneOffset();
+          const abs = Math.abs(tzOffset);
+          const sign = tzOffset > 0 ? '-' : '+';
+          const h = String(Math.floor(abs / 60)).padStart(2, '0');
+          const m = String(abs % 60).padStart(2, '0');
+          return `${sign}${h}:${m}`;
+        })();
+        timestamp = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}${offset}`;
+      }
+    }
+
     return {
       id: photo.id,
-      photo_info: photo.photo_info,
-      plate_parts: {
-        prefix,
-        numbers,
-        suffix,
-        message: plateMessage,
+      photo_info: {
+        ...filteredPhotoInfo,
+        speedLimit,
+        measuredSpeed,
+        timestamp,
       },
+      // plate_parts: {
+      //   prefix,
+      //   numbers,
+      //   suffix,
+      //   message: plateMessage,
+      // },
       consultaVehiculo,
       photo_base64,
     };

@@ -31,6 +31,7 @@ export class ProcessedPhotoController {
     current_speed_kmh: number;
     lpNumber: string;
     lpType: string;
+    photoId?: number;
   }) {
     return this.processedPhotoService.sendSpeedEvent(
       body.cruise,
@@ -39,6 +40,7 @@ export class ProcessedPhotoController {
       body.current_speed_kmh,
       body.lpNumber,
       body.lpType,
+      body.photoId,
     );
   }
 

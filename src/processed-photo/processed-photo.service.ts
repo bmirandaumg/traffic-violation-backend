@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PhotoService } from '../photo/photo.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProcessedPhoto } from './processed-photo.entity';
@@ -14,6 +15,7 @@ export class ProcessedPhotoService {
     private readonly photoRepository: Repository<Photo>,
     @InjectRepository(UserE)
     private readonly userRepository: Repository<UserE>,
+    private readonly photoService: PhotoService,
   ) {}
 
   // Crear un nuevo registro de procesamiento de foto
@@ -43,12 +45,13 @@ export class ProcessedPhotoService {
   }
 
   async sendSpeedEvent(
-    cruise:string,
-    timestamp:string,
-    speed_limit_kmh:number,
-    current_speed_kmh:number,
-    lpNumber:string,
-    lpType:string,
+    cruise: string,
+    timestamp: string,
+    speed_limit_kmh: number,
+    current_speed_kmh: number,
+    lpNumber: string,
+    lpType: string,
+    photoId?: number,
   ): Promise<void> {
     const urlProcessedPhoto = process.env.SPEED_EVENTS_URL;
     const payload = {
@@ -60,20 +63,40 @@ export class ProcessedPhotoService {
       lpType,
     };
 
-    try{
-      const response = await axios.post(urlProcessedPhoto, payload,{
+    try {
+      const response = await axios.post(urlProcessedPhoto, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
+        validateStatus: () => true, // Permite manejar manualmente el status
       });
-      return response.data;
-    }catch (error) {
+      console.log('[sendSpeedEvent] Respuesta del endpoint:', response.status, response.data);
+      // Solo si el POST fue exitoso (2xx) y se pasó photoId, elimina la foto
+      if (response.status >= 200 && response.status < 300) {
+        console.log('[sendSpeedEvent] Valor de photoId recibido:', photoId, 'Tipo:', typeof photoId);
+        if (photoId !== undefined && photoId !== null) {
+          console.log('[sendSpeedEvent] Eliminando foto con ID:', photoId);
+          try {
+            await this.photoService.deletePhotoAndFile(Number(photoId));
+            console.log('[sendSpeedEvent] Foto eliminada correctamente:', photoId);
+          } catch (err) {
+            console.error('[sendSpeedEvent] Error al eliminar foto:', photoId, (err as any)?.message || err);
+            throw err;
+          }
+        } else {
+          console.warn('[sendSpeedEvent] photoId no proporcionado, no se elimina ninguna foto');
+        }
+        return response.data;
+      } else {
+        throw new Error(`POST falló con status ${response.status}: ${JSON.stringify(response.data)}`);
+      }
+    } catch (error) {
+      // Si falla el POST, no elimina la foto
+      console.error('[sendSpeedEvent] Error al enviar el evento de velocidad:', error);
       throw new Error(
         `Error al enviar el evento de velocidad: ${error.response?.data?.message || error.message}`,
       );
     }
-
-
   }
 
   // Obtener todas las fotos procesadas
