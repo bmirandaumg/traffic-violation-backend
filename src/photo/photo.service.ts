@@ -81,22 +81,25 @@ export class PhotoService {
     await this.photoRepository.delete(photoId);
   }
 
+
   async getFilteredPhotos(
     photoDate: string,
     idCruise: number,
     page: number = 1,
     limit: number = 10,
+    userId?: number,
   ): Promise<[any[], number]> {
     page = Number(page) || 1;
     limit = Number(limit) || 10;
     const skip = (page - 1) * limit;
     const oneHourAgo = addHours(new Date(), -1);
 
+    // Mostrar fotos: libres o bloqueadas por el usuario actual
     const [photos, total] = await this.photoRepository.createQueryBuilder('photo')
       .where('photo.photo_date = :photoDate', { photoDate })
       .andWhere('photo.id_cruise = :idCruise', { idCruise })
       .andWhere('photo.id_photo_status = :status', { status: 0 })
-      .andWhere('(photo.locked_by IS NULL AND (photo.locked_at IS NULL OR photo.locked_at <= :oneHourAgo))', { oneHourAgo })
+      .andWhere('((photo.locked_by IS NULL AND (photo.locked_at IS NULL OR photo.locked_at <= :oneHourAgo)) OR (photo.locked_by = :userId))', { oneHourAgo, userId })
       .skip(skip)
       .take(limit)
       .orderBy('photo.id')

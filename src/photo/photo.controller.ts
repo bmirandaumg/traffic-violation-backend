@@ -150,17 +150,19 @@ export class PhotoController {
     @Query('id_cruise') idCruise: string,
     @Query('page') page: string,
     @Query('limit') limit: string,
+    @Req() req: any,
   ) {
     const idCruiseNumber = Number(idCruise);
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
-    console.log({ photoDate, idCruiseNumber, pageNumber, limitNumber });
+    const userId = req.user?.id;
+    console.log({ photoDate, idCruiseNumber, pageNumber, limitNumber, userId });
 
     if (isNaN(idCruiseNumber) || isNaN(pageNumber) || isNaN(limitNumber)) {
       throw new BadRequestException('Invalid query parameters');
     }
 
-    return this.photoService.getFilteredPhotos(photoDate, idCruiseNumber, pageNumber, limitNumber);
+    return this.photoService.getFilteredPhotos(photoDate, idCruiseNumber, pageNumber, limitNumber, userId);
   }
     @Post('reject')
   async rejectPhoto(
