@@ -92,7 +92,7 @@ export class PhotoService {
     page = Number(page) || 1;
     limit = Number(limit) || 10;
     const skip = (page - 1) * limit;
-    const oneHourAgo = addHours(new Date(), -1);
+  const oneHourAgo = new Date(Date.now() - 5 * 60 * 1000); // 5 minutos atrás
 
     // Mostrar fotos: libres o bloqueadas por el usuario actual
     const [photos, total] = await this.photoRepository.createQueryBuilder('photo')

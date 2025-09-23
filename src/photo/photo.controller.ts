@@ -95,25 +95,50 @@ export class PhotoController {
     // Excluir campos no deseados de photo_info y preparar timestamp
     const { distance, fileName, videoNumber, serialNumber, date, time, ...filteredPhotoInfo } = photo.photo_info || {};
 
-    // Construir timestamp ISO 8601 si date y time existen
+    // Construir timestamp ISO 8601 estándar si date y time existen
     let timestamp = null;
     if (date && time) {
-      // date: "03/07/2024", time: "06:24:27"
-      // Convertir a "2024-07-03T06:24:27-06:00" (asumiendo zona horaria local)
+      // date: "03/07/2024", time: "06:24:27" o "10:54:03 AM"
       const [day, month, year] = date.split('/');
       if (day && month && year) {
-        // Obtener offset de zona horaria local
-        const offset = (() => {
-          const tzOffset = new Date().getTimezoneOffset();
-          const abs = Math.abs(tzOffset);
-          const sign = tzOffset > 0 ? '-' : '+';
-          const h = String(Math.floor(abs / 60)).padStart(2, '0');
-          const m = String(abs % 60).padStart(2, '0');
-          return `${sign}${h}:${m}`;
-        })();
-        timestamp = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}${offset}`;
+        // Limpiar time (quitar AM/PM si existe)
+        let cleanTime = time.trim();
+        let isPM = false;
+        if (/AM|PM/i.test(cleanTime)) {
+          isPM = /PM/i.test(cleanTime);
+          cleanTime = cleanTime.replace(/\s?(AM|PM)/i, '');
+          let [hh, mm, ss] = cleanTime.split(':');
+          if (hh && isPM && Number(hh) < 12) {
+            hh = String(Number(hh) + 12).padStart(2, '0');
+          } else if (hh && !isPM && Number(hh) === 12) {
+            hh = '00';
+          }
+          cleanTime = [hh, mm, ss || '00'].join(':');
+        }
+        // Si no hay segundos, agregar '00'
+        if (/^\d{2}:\d{2}$/.test(cleanTime)) {
+          cleanTime += ':00';
+        }
+        // Construir string ISO
+        const localDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${cleanTime}`);
+        timestamp = localDate.toISOString();
       }
     }
+
+    // Determinar si la info SAT es completa
+    const isSatVehicleInfoFound = !!(
+      consultaVehiculo &&
+      typeof consultaVehiculo === 'object' &&
+      consultaVehiculo.ESTADO &&
+      consultaVehiculo.PLACA &&
+      consultaVehiculo.MARCA &&
+      consultaVehiculo.LINEA &&
+      consultaVehiculo.MODELO &&
+      consultaVehiculo.COLOR &&
+      consultaVehiculo.TIPO &&
+      consultaVehiculo.USO &&
+      consultaVehiculo.CC
+    );
 
     return {
       id: photo.id,
@@ -129,7 +154,8 @@ export class PhotoController {
       //   suffix,
       //   message: plateMessage,
       // },
-      consultaVehiculo,
+      isSatVehicleInfoFound,
+      consultaVehiculo: isSatVehicleInfoFound ? consultaVehiculo : null,
       photo_base64,
     };
   }
