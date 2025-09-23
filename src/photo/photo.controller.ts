@@ -95,33 +95,84 @@ export class PhotoController {
     // Excluir campos no deseados de photo_info y preparar timestamp
     const { distance, fileName, videoNumber, serialNumber, date, time, ...filteredPhotoInfo } = photo.photo_info || {};
 
-    // Construir timestamp ISO 8601 estándar si date y time existen
+    // Construir timestamp usando photo_date (YYYY-MM-DD) y time de photo_info
     let timestamp = null;
-    if (date && time) {
-      // date: "03/07/2024", time: "06:24:27" o "10:54:03 AM"
-      const [day, month, year] = date.split('/');
-      if (day && month && year) {
-        // Limpiar time (quitar AM/PM si existe)
+    if (photo.photo_date && time) {
+      // Obtener datePart robustamente (YYYY-MM-DD)
+      let datePart: string | null = null;
+      if (photo.photo_date instanceof Date) {
+        if (!isNaN(photo.photo_date.getTime())) {
+          datePart = photo.photo_date.toISOString().slice(0, 10);
+        }
+      } else if (typeof photo.photo_date === 'string') {
+        // Si viene como string, intentar extraer la fecha
+        const dateStr = String(photo.photo_date);
+        const match = dateStr.match(/\d{4}-\d{2}-\d{2}/);
+        datePart = match ? match[0] : null;
+      }
+      if (datePart) {
         let cleanTime = time.trim();
-        let isPM = false;
-        if (/AM|PM/i.test(cleanTime)) {
-          isPM = /PM/i.test(cleanTime);
-          cleanTime = cleanTime.replace(/\s?(AM|PM)/i, '');
-          let [hh, mm, ss] = cleanTime.split(':');
-          if (hh && isPM && Number(hh) < 12) {
+        // Convertir AM/PM a 24h
+        const ampmMatch = cleanTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        if (ampmMatch) {
+          let [ , hh, mm, ss, ampm ] = ampmMatch;
+          hh = hh.padStart(2, '0');
+          mm = mm.padStart(2, '0');
+          ss = (ss || '00').padStart(2, '0');
+          if (ampm) {
+            if (ampm.toUpperCase() === 'PM' && hh !== '12') {
+              hh = String(Number(hh) + 12).padStart(2, '0');
+            } else if (ampm.toUpperCase() === 'AM' && hh === '12') {
+              hh = '00';
+            }
+          }
+          cleanTime = `${hh}:${mm}:${ss}`;
+        }
+        // Validar formato antes de crear Date
+        const isoString = `${datePart}T${cleanTime}Z`;
+        console.log('[getPhotoById] datePart:', datePart, '| cleanTime:', cleanTime, '| isoString:', isoString);
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(isoString)) {
+          const utcDate = new Date(isoString);
+          if (!isNaN(utcDate.getTime())) {
+            timestamp = utcDate.toISOString();
+          } else {
+            console.warn('[getPhotoById] Fecha inválida:', isoString);
+          }
+        } else {
+          console.warn('[getPhotoById] String ISO inválido:', isoString);
+        }
+      } else {
+        console.warn('[getPhotoById] photo_date no es un Date válido ni un string con formato YYYY-MM-DD:', photo.photo_date);
+      }
+      let cleanTime = time.trim();
+      // Convertir AM/PM a 24h
+      const ampmMatch = cleanTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+      if (ampmMatch) {
+        let [ , hh, mm, ss, ampm ] = ampmMatch;
+        hh = hh.padStart(2, '0');
+        mm = mm.padStart(2, '0');
+        ss = (ss || '00').padStart(2, '0');
+        if (ampm) {
+          if (ampm.toUpperCase() === 'PM' && hh !== '12') {
             hh = String(Number(hh) + 12).padStart(2, '0');
-          } else if (hh && !isPM && Number(hh) === 12) {
+          } else if (ampm.toUpperCase() === 'AM' && hh === '12') {
             hh = '00';
           }
-          cleanTime = [hh, mm, ss || '00'].join(':');
         }
-        // Si no hay segundos, agregar '00'
-        if (/^\d{2}:\d{2}$/.test(cleanTime)) {
-          cleanTime += ':00';
+        cleanTime = `${hh}:${mm}:${ss}`;
+      }
+      // Validar formato antes de crear Date
+      const isoString = `${datePart}T${cleanTime}Z`;
+      console.log('[getPhotoById] datePart:', datePart, '| cleanTime:', cleanTime, '| isoString:', isoString);
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(isoString)) {
+        const utcDate = new Date(isoString);
+        if (!isNaN(utcDate.getTime())) {
+          timestamp = utcDate.toISOString();
+        } else {
+          console.warn('[getPhotoById] Fecha inválida:', isoString);
         }
-        // Construir string ISO
-        const localDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${cleanTime}`);
-        timestamp = localDate.toISOString();
+      } else {
+        console.warn('[getPhotoById] String ISO inválido:', isoString);
       }
     }
 
@@ -157,6 +208,7 @@ export class PhotoController {
       isSatVehicleInfoFound,
       consultaVehiculo: isSatVehicleInfoFound ? consultaVehiculo : null,
       photo_base64,
+      photo_date: photo.photo_date,
     };
   }
 
