@@ -112,13 +112,17 @@ export class PhotoController {
       }
       if (datePart) {
         let cleanTime = time.trim();
-        // Convertir AM/PM a 24h
-        const ampmMatch = cleanTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+        // Si viene como HH:mm, agregar los segundos
+        if (/^\d{1,2}:\d{2}$/.test(cleanTime)) {
+          cleanTime = cleanTime + ':00';
+        }
+        // Convertir AM/PM a 24h si aplica
+        const ampmMatch = cleanTime.match(/^(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)?$/i);
         if (ampmMatch) {
           let [ , hh, mm, ss, ampm ] = ampmMatch;
           hh = hh.padStart(2, '0');
           mm = mm.padStart(2, '0');
-          ss = (ss || '00').padStart(2, '0');
+          ss = ss.padStart(2, '0');
           if (ampm) {
             if (ampm.toUpperCase() === 'PM' && hh !== '12') {
               hh = String(Number(hh) + 12).padStart(2, '0');
@@ -199,16 +203,13 @@ export class PhotoController {
         measuredSpeed,
         timestamp,
       },
-      // plate_parts: {
-      //   prefix,
-      //   numbers,
-      //   suffix,
-      //   message: plateMessage,
-      // },
       isSatVehicleInfoFound,
       consultaVehiculo: isSatVehicleInfoFound ? consultaVehiculo : null,
+      plate_parts: {
+        lpNumber: numbers + suffix,
+        lpType: prefix + '0',
+      },
       photo_base64,
-      photo_date: photo.photo_date,
     };
   }
 
