@@ -206,8 +206,8 @@ export class PhotoController {
       isSatVehicleInfoFound,
       consultaVehiculo: isSatVehicleInfoFound ? consultaVehiculo : null,
       plate_parts: {
-        lpNumber: numbers + suffix,
         lpType: prefix + '0',
+        lpNumber: numbers + suffix,
       },
       photo_base64,
     };
