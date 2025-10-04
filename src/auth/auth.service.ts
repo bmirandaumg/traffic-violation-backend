@@ -25,6 +25,33 @@ export class AuthService {
     }
   }
 
+  async generateRefreshToken(user: any): Promise<string> {
+    const payload = {sub: user.id, username: user.username};
+    return this.jwtService.sign(payload, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '1d',
+      secret: process.env.JWT_REFRESH_SECRET,
+    }); // El refresh token dura 7 días
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<{ access_token: string }> {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+      const user = await this.userService.findById(payload.sub);
+      if (!user) throw new UnauthorizedException('User not found');
+      const accessToken = this.jwtService.sign(
+        { username: user.username, sub: user.id, role: user.role },
+        { expiresIn: '1h', secret: process.env.JWT_SECRET }
+      );
+      return { access_token: accessToken };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+
+
   // Genera el JWT después de validar al usuario
   async login(user: UserE) {
     const payload = { username: user.username, sub: user.id, role: user.role };
