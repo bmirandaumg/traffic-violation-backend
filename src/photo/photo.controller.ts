@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Console } from 'console';
 
 @Controller('photos')
 @UseGuards(JwtAuthGuard) 
@@ -50,25 +51,28 @@ export class PhotoController {
     }
 
     // Extraer y separar el plate
-    let plate = (photo.photo_info?.vehicle?.plate || '')
-      .replace(/\s+/g, '') // quitar espacios
-      .replace(/[^a-zA-Z0-9]/g, ''); // quitar cualquier símbolo que no sea letra o número
-    let prefix = '', numbers = '', suffix = '';
-    let plateMessage = undefined;
-    const match = plate.match(/^([A-Za-z]+)?(\d+)([A-Za-z]+)?$/);
-    if (match) {
-      prefix = match[1] || '';
-      numbers = match[2] || '';
-      suffix = match[3] || '';
-    } else {
-      plateMessage = 'Placa no encontrada o formato no válido';
-    }
-
+  let rawPlate = (photo.photo_info?.vehicle?.plate || '');
+  // Extraer solo la parte válida de la placa (letras y números, ignorando basura)
+  const plateMatch = rawPlate.match(/[A-Za-z]+[- ]*[0-9]+[- ]*[A-Za-z]*/);
+  let plate = plateMatch ? plateMatch[0].replace(/[- ]/g, '') : '';
+  let prefix = '', numbers = '', suffix = '';
+  let plateMessage = undefined;
+  const match = plate.match(/^([A-Za-z]+)?(\d+)([A-Za-z]+)?$/);
+  if (match) {
+    prefix = match[1] || '';
+    numbers = match[2] || '';
+    suffix = match[3] || '';
+  } else {
+    plateMessage = 'Placa no encontrada o formato no válido';
+  }
+  console.log('license plate ',prefix+' '+numbers+' '+suffix);
+  
     // Preparar datos para consultar-vehiculo
     let consultaVehiculo = null;
     if (numbers && suffix && prefix) {
       const placa = numbers + suffix;
       const tipo = prefix
+      console.log('tipo placa: '+tipo + ' placa'+prefix);
       try {
         consultaVehiculo = await this.photoService.consultarVehiculo(placa, tipo);
       } catch (err) {
