@@ -68,7 +68,7 @@ export class PhotoController {
     let consultaVehiculo = null;
     if (numbers && suffix && prefix) {
       const placa = numbers + suffix;
-      const tipo = prefix + '0';
+      const tipo = prefix
       try {
         consultaVehiculo = await this.photoService.consultarVehiculo(placa, tipo);
       } catch (err) {

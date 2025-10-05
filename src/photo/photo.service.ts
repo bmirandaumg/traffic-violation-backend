@@ -186,8 +186,10 @@ export class PhotoService {
   const url = process.env.SOAP_URL_SAT;
   const pUsuario = process.env.SOAP_USER_SAT;
   const pClave = process.env.SOAP_PASS_SAT;
-
   pTipo = pTipo + '0';
+  // if (pTipo.length === 1) {
+  //   pTipo = pTipo + '0';
+  // }
   const xml = buildSoapRequestSat(pUsuario, pClave, pTipo, pPlaca);
 
   const headers = {
