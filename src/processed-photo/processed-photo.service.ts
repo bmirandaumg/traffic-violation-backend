@@ -53,16 +53,28 @@ export class ProcessedPhotoService {
     lpType: string,
     photoId?: number,
   ): Promise<void> {
+
+      const filteredLpType = lpType.replace(/\d/g, '');
+      const dateObj = new Date(timestamp);
+      const dia = String(dateObj.getUTCDate()).padStart(2, '0');
+      const mes = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+      const año = dateObj.getUTCFullYear();
+      const hora = String(dateObj.getUTCHours()).padStart(2, '0');
+      const minuto = String(dateObj.getUTCMinutes()).padStart(2, '0');
+      const segundo = String(dateObj.getUTCSeconds()).padStart(2, '0');
+      const timestampFormateado = `${dia}-${mes}-${año}-${hora}-${minuto}-${segundo}`;
+
+
     const urlProcessedPhoto = process.env.SPEED_EVENTS_URL;
     const payload = {
       cruise,
-      timestamp,
+      timestamp: timestampFormateado,
       speed_limit_kmh,
       current_speed_kmh,
       lpNumber,
-      lpType,
+      lpType: filteredLpType,
     };
-
+console.log('[sendSpeedEvent] Enviando payloadd:', JSON.stringify(payload, null, 2));
     try {
       const response = await axios.post(urlProcessedPhoto, payload, {
         headers: {
