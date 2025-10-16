@@ -222,8 +222,13 @@ export class ProcessedPhotoService {
         lpNumber: string,
         lpType: string
       }
-    ): Promise<string> {
+  ): Promise<{ photoProcessed: boolean; message: string }> {
       // 1. Llamar a sendSpeedEvent
+    const validatedPhotoStatus = await this.photoRepository.findOne({ where: { id: photoId } });
+    if (validatedPhotoStatus?.id_photo_status !== 0) 
+      throw new Error(`La foto con ID ${photoId} no está en estado 'pendiente' y no puede ser procesada.`);
+      
+
       const result = await this.sendSpeedEvent(
         speedEventParams.cruise,
         speedEventParams.timestamp,
@@ -243,6 +248,9 @@ export class ProcessedPhotoService {
       // 3. Registrar procesamiento exitoso
       await this.processSuccessfulPhoto(photoId, result.trafficFineId, result.payload, userId);
 
-      return 'Multa procesada exitosamente';
+      return {
+        photoProcessed: true,
+        message: 'Traffic fine processed successfully'
+      };
     }
 }

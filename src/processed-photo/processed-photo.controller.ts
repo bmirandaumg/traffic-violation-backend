@@ -37,7 +37,7 @@ export class ProcessedPhotoController {
     current_speed_kmh: number;
     lpNumber: string;
     lpType: string;
-  }) {
+  }): Promise<{ photoProcessed: boolean; message: string }> {
     return this.processedPhotoService.processTrafficFine(
       body.photoId,
       body.userId,
