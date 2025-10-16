@@ -24,6 +24,34 @@ export class ProcessedPhotoController {
     );
   }
 
+  /**
+   * Endpoint para procesar una multa completa (evento, borrado y registro)
+   */
+  @Post('process-traffic-fine')
+  async processTrafficFine(@Body() body: {
+    photoId: number;
+    userId: number;
+    cruise: string;
+    timestamp: string;
+    speed_limit_kmh: number;
+    current_speed_kmh: number;
+    lpNumber: string;
+    lpType: string;
+  }) {
+    return this.processedPhotoService.processTrafficFine(
+      body.photoId,
+      body.userId,
+      {
+        cruise: body.cruise,
+        timestamp: body.timestamp,
+        speed_limit_kmh: body.speed_limit_kmh,
+        current_speed_kmh: body.current_speed_kmh,
+        lpNumber: body.lpNumber,
+        lpType: body.lpType,
+      }
+    );
+  }
+
 
   // Endpoint para obtener todas las fotos procesadas
   @Get()

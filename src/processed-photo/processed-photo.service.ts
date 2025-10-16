@@ -203,4 +203,46 @@ export class ProcessedPhotoService {
       relations: ['photo', 'user']
     });
   }
+  
+    /**
+     * Orquesta el procesamiento exitoso de una multa:
+     * 1. Llama a sendSpeedEvent
+     * 2. Elimina la foto física
+     * 3. Registra el procesamiento exitoso
+     * Devuelve mensaje de éxito si todo sale bien
+     */
+    async processTrafficFine(
+      photoId: number,
+      userId: number,
+      speedEventParams: {
+        cruise: string,
+        timestamp: string,
+        speed_limit_kmh: number,
+        current_speed_kmh: number,
+        lpNumber: string,
+        lpType: string
+      }
+    ): Promise<string> {
+      // 1. Llamar a sendSpeedEvent
+      const result = await this.sendSpeedEvent(
+        speedEventParams.cruise,
+        speedEventParams.timestamp,
+        speedEventParams.speed_limit_kmh,
+        speedEventParams.current_speed_kmh,
+        speedEventParams.lpNumber,
+        speedEventParams.lpType
+      );
+
+      if (!result.success) {
+        throw new Error(result.errorMessage || 'Error al enviar evento de velocidad');
+      }
+
+      // 2. Eliminar archivo físico
+      await this.photoService.deletePhotoAndFile(photoId);
+
+      // 3. Registrar procesamiento exitoso
+      await this.processSuccessfulPhoto(photoId, result.trafficFineId, result.payload, userId);
+
+      return 'Multa procesada exitosamente';
+    }
 }
