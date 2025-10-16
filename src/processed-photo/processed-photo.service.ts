@@ -156,6 +156,9 @@ export class ProcessedPhotoService {
     if (!photo) {
       throw new Error(`Foto con ID ${photoId} no encontrada`);
     }
+    if (photo.id_photo_status !== 0) {
+      throw new Error(`La foto con ID ${photoId} no está en estado 'pendiente' y no puede ser rechazada.`);
+    }
     try {
       // 1. Crear registro en photo_processing
       const photoProcessing = this.photoProcessingRepository.create({
@@ -174,12 +177,16 @@ export class ProcessedPhotoService {
         rejectionReasonId: rejectionReasonId
       });
 
+
+
       await this.photoRejectionRepository.save(photoRejection);
 
       // 3. Actualizar el status de la foto a rechazada
       await this.photoRepository.update(photo.id, { 
         id_photo_status: 2 // Asumiendo que 2 es "rechazada"
       });
+
+      await this.photoService.deletePhotoAndFile(photo.id);
 
       console.log(`[processRejectedPhoto] Foto ${photo.id} marcada como rechazada`);
 
@@ -203,7 +210,6 @@ export class ProcessedPhotoService {
       relations: ['photo', 'user']
     });
   }
-  
     /**
      * Orquesta el procesamiento exitoso de una multa:
      * 1. Llama a sendSpeedEvent
@@ -227,7 +233,7 @@ export class ProcessedPhotoService {
     const validatedPhotoStatus = await this.photoRepository.findOne({ where: { id: photoId } });
     if (validatedPhotoStatus?.id_photo_status !== 0) 
       throw new Error(`La foto con ID ${photoId} no está en estado 'pendiente' y no puede ser procesada.`);
-      
+
 
       const result = await this.sendSpeedEvent(
         speedEventParams.cruise,

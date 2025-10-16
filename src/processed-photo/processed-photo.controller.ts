@@ -3,6 +3,25 @@ import { ProcessedPhotoService } from './processed-photo.service';
 
 @Controller('processed-photo')
 export class ProcessedPhotoController {
+  /**
+   * Endpoint para rechazar una foto
+   */
+  @Post('reject-photo')
+  async rejectPhoto(@Body() body: {
+    photoId: number;
+    rejectionReasonId: number;
+    userId: number;
+  }): Promise<{ photoRejected: boolean; message: string }> {
+    await this.processedPhotoService.processRejectedPhoto(
+      body.photoId,
+      body.rejectionReasonId,
+      body.userId
+    );
+    return {
+      photoRejected: true,
+      message: 'Photo rejected successfully'
+    };
+  }
   constructor(private readonly processedPhotoService: ProcessedPhotoService) {}
 
 @Post('send-speed-event')
