@@ -5,8 +5,6 @@ import { Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, IsNull, LessThanOrEqual } from 'typeorm';
 import { Photo } from './photo.entity';
-import { ProcessedPhoto } from '../processed-photo/processed-photo.entity';
-import { PhotoRejected } from '../processed-photo/photo-rejected.entity';
 import { PhotoGateway } from './photo.gateway';
 import { PhotoStatus } from './photo-status.entity';
 import { addHours } from 'date-fns';
@@ -21,10 +19,6 @@ export class PhotoService {
     @InjectRepository(Photo)
     private readonly photoRepository: Repository<Photo>,
     private readonly photoGateway: PhotoGateway,  // Inyecta el gateway
-    @InjectRepository(ProcessedPhoto)
-    private readonly processedPhotoRepository: Repository<ProcessedPhoto>,
-  @InjectRepository(PhotoRejected)
-  private readonly photoRejectedRepository: Repository<PhotoRejected>,
   @InjectRepository(PhotoStatus)
   private readonly photoStatusRepository: Repository<PhotoStatus>,
   ) {}
@@ -154,32 +148,6 @@ export class PhotoService {
       });
     }
     return [result, total];
-  }
-
-  async rejectPhoto(photoId: number, userId: number, rejectionReasonId: number): Promise<void> {
-    // 1. Cambiar el estatus de la foto en la tabla `photo`
-    const photo = await this.photoRepository.findOne({ where: { id: photoId } });
-    if (!photo) throw new NotFoundException('Photo not found');
-    
-    photo.id_photo_status = 2;
-    await this.photoRepository.save(photo);
-
-    // 2. Insertar un registro en `processed_photo`
-    const processedPhoto = this.processedPhotoRepository.create({
-      photo: photo, // objeto completo
-      user: { id: userId } as any, // solo el id, para evitar buscar el usuario completo
-      start_time: photo.locked_at,
-      end_time: new Date(),
-      rejectionReason: { id: rejectionReasonId } as any // solo el id, para evitar buscar el motivo completo
-    });
-    const savedProcessedPhoto = await this.processedPhotoRepository.save(processedPhoto);
-
-    // 3. Insertar un registro en `photo_rejected`
-    const photoRejected = this.photoRejectedRepository.create({
-      processedPhoto: savedProcessedPhoto,
-      rejectionReason: { id: rejectionReasonId } as any,
-    });
-    await this.photoRejectedRepository.save(photoRejected);
   }
 
   async consultarVehiculo(pPlaca: string, pTipo: string): Promise<any> {
