@@ -5,24 +5,6 @@ import { ProcessedPhotoService } from './processed-photo.service';
 export class ProcessedPhotoController {
   constructor(private readonly processedPhotoService: ProcessedPhotoService) {}
 
-  // Endpoint para crear un nuevo registro de foto procesada
-  @Post()
-  async createProcessedPhoto(
-    @Body('id_photo') idPhoto: number,
-    @Body('id_user') idUser: number,
-    @Body('start_time') startTime: Date,
-    @Body('end_time') endTime: Date,
-    @Body('id_rejection_reason') idRejectionReason?: number,
-  ) {
-    return this.processedPhotoService.createProcessedPhoto(
-      idPhoto,
-      idUser,
-      startTime,
-      endTime,
-      idRejectionReason,
-    );
-  }
-
 @Post('send-speed-event')
   async sendSpeedEvent(@Body() body: {
     cruise: string;
@@ -31,7 +13,6 @@ export class ProcessedPhotoController {
     current_speed_kmh: number;
     lpNumber: string;
     lpType: string;
-    photoId?: number;
   }) {
     return this.processedPhotoService.sendSpeedEvent(
       body.cruise,
@@ -40,7 +21,6 @@ export class ProcessedPhotoController {
       body.current_speed_kmh,
       body.lpNumber,
       body.lpType,
-      body.photoId,
     );
   }
 

@@ -78,7 +78,7 @@ export class PhotoService {
     }
 
     // Eliminar la foto de la base de datos (siempre, aun si el archivo no existe)
-    await this.photoRepository.delete(photoId);
+    // await this.photoRepository.delete(photoId);
   }
 
 

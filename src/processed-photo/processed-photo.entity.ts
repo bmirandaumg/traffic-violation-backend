@@ -26,4 +26,9 @@ export class ProcessedPhoto {
   @ManyToOne(() => RejectionReason, { nullable: true })
   @JoinColumn({ name: 'id_rejection_reason' })  // Llave foránea opcional a la tabla "rejection_reason"
   rejectionReason: RejectionReason;  // Motivo de rechazo si el procesamiento no fue exitoso
+  @Column({ type: 'integer', nullable: true })
+  traffic_fine_id: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  speed_event_payload: any;
 }
