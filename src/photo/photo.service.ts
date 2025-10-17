@@ -93,7 +93,8 @@ export class PhotoService {
       .where('photo.photo_date = :photoDate', { photoDate })
       .andWhere('photo.id_cruise = :idCruise', { idCruise })
       .andWhere('photo.id_photo_status = :status', { status: 0 })
-      .andWhere('((photo.locked_by IS NULL AND (photo.locked_at IS NULL OR photo.locked_at <= :oneHourAgo)) OR (photo.locked_by = :userId))', { oneHourAgo, userId })
+      .andWhere('(photo.locked_by IS NULL OR photo.locked_by = :userId OR photo.locked_at <= :oneHourAgo)',
+      { userId, oneHourAgo })
       .skip(skip)
       .take(limit)
       .orderBy('photo.id')
