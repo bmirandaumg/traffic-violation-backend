@@ -59,6 +59,7 @@ export class AuthService {
       access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),  // Retorna el JWT firmado
       email: user.email,
       username: user.username,
+      userId: user.id,
     };
   }
 }

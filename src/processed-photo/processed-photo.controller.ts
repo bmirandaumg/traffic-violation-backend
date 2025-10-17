@@ -70,17 +70,4 @@ export class ProcessedPhotoController {
       }
     );
   }
-
-
-  // Endpoint para obtener todas las fotos procesadas
-  @Get()
-  async findAll() {
-    return this.processedPhotoService.findAll();
-  }
-
-  // Endpoint para obtener una foto procesada por su ID
-  @Get(':id')
-  async findOne(@Param('id') id: number) {
-    return this.processedPhotoService.findOne(id);
-  }
 }

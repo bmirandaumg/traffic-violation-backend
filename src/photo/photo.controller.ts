@@ -247,14 +247,7 @@ export class PhotoController {
 
     return this.photoService.getFilteredPhotos(photoDate, idCruiseNumber, pageNumber, limitNumber, userId);
   }
-    @Post('reject')
-  async rejectPhoto(
-    @Body('photoId') photoId: number,
-    @Body('userId') userId: number,
-    @Body('rejectionReasonId') rejectionReasonId: number,
-  ) {
-    return this.photoService.rejectPhoto(photoId, userId, rejectionReasonId);
-  }
+
   @Post('consultar-vehiculo')
 async consultarVehiculo(@Body('placa') placa: string, @Body('tipo') tipo: string) {
   return this.photoService.consultarVehiculo(placa, tipo);

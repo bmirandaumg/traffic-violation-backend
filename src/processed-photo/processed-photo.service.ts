@@ -195,21 +195,6 @@ export class ProcessedPhotoService {
       throw new Error(`Error al procesar foto rechazada: ${error.message}`);
     }
   }
-
-  // Obtener todas las fotos procesadas
-  async findAll(): Promise<PhotoProcessing[]> {
-    return this.photoProcessingRepository.find({
-      relations: ['photo', 'user']
-    });
-  }
-
-  // Obtener una foto procesada por ID
-  async findOne(id: number): Promise<PhotoProcessing> {
-    return this.photoProcessingRepository.findOne({
-      where: { id },
-      relations: ['photo', 'user']
-    });
-  }
     /**
      * Orquesta el procesamiento exitoso de una multa:
      * 1. Llama a sendSpeedEvent
