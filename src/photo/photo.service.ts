@@ -212,7 +212,7 @@ export class PhotoService {
       }
     });
 
-    if (existingLock) {
+    if (existingLock && existingLock.locked_by !== userId) {
       throw new BadRequestException(`Photo with ID ${photoId} is already locked`);
     }
 
