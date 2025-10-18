@@ -1,9 +1,9 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Injectable, NotFoundException} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, IsNull, LessThanOrEqual } from 'typeorm';
+import { Repository, LessThan, IsNull, LessThanOrEqual, MoreThan,Not } from 'typeorm';
 import { Photo } from './photo.entity';
 import { PhotoGateway } from './photo.gateway';
 import { PhotoStatus } from './photo-status.entity';
@@ -203,6 +203,19 @@ export class PhotoService {
 }
 
   async lockPhoto(photoId: number, userId: number): Promise<void> {
+
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000); // 5 minutos atrás
+    const existingLock = await this.photoRepository.findOne({
+      where: {
+        id: photoId,
+        locked_at: MoreThan(fiveMinutesAgo)
+      }
+    });
+
+    if (existingLock) {
+      throw new BadRequestException(`Photo with ID ${photoId} is already locked`);
+    }
+
     await this.photoRepository.update(photoId, {
       locked_by: userId,
       locked_at: new Date(),
