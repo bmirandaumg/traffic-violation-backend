@@ -3,7 +3,7 @@ import { RejectionReasonService } from './rejection-reason.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
-@Controller('rejection-reason')
+@Controller('rejection-reasons')
 export class RejectionReasonController {
   constructor(private readonly rejectionReasonService: RejectionReasonService) {}
 
