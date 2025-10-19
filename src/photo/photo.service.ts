@@ -213,7 +213,7 @@ export class PhotoService {
     });
 
     if (existingLock && existingLock.locked_by !== userId) {
-      throw new BadRequestException(`Photo with ID ${photoId} is already locked`);
+      throw new BadRequestException(`Photo tomada por otro usuario, seleccione otra.`);
     }
 
     await this.photoRepository.update(photoId, {
