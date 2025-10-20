@@ -9,6 +9,7 @@ import { Photo } from '../photo/photo.entity';
 import { UserE } from '../user/user.entity';
 import axios from 'axios';
 
+
 @Injectable()
 export class ProcessedPhotoService {
   constructor(
@@ -33,6 +34,7 @@ export class ProcessedPhotoService {
     current_speed_kmh: number,
     lpNumber: string,
     lpType: string,
+    photoName?: string,
   ): Promise<{ success: boolean, trafficFineId?: number, payload?: any, errorMessage?: string }> {
 
     const filteredLpType = lpType.replace(/\d/g, '');
@@ -46,7 +48,9 @@ export class ProcessedPhotoService {
     const timestampFormateado = `${dia}-${mes}-${año}-${hora}-${minuto}-${segundo}`;
 
     const urlProcessedPhoto = process.env.SPEED_EVENTS_URL;
-    const payload = {
+    const rawFlag = process.env.SEND_PHOTO_NAME ?? '';
+    const includePhotoName = rawFlag.toLowerCase() === 'true';
+    const payload: Record<string, any> = {
       cruise,
       timestamp: timestampFormateado,
       speed_limit_kmh,
@@ -54,6 +58,13 @@ export class ProcessedPhotoService {
       lpNumber,
       lpType: filteredLpType,
     };
+
+    console.log('[sendSpeedEvent] SEND_PHOTO_NAME flag:', rawFlag, '| includePhotoName:', includePhotoName);
+    console.log('[sendSpeedEvent] photoName param:', photoName);
+
+    if (includePhotoName && photoName) {
+      payload.photo_name = photoName;
+    }
 
     console.log('[sendSpeedEvent] Enviando payload:', JSON.stringify(payload, null, 2));
     
@@ -219,14 +230,14 @@ export class ProcessedPhotoService {
     if (validatedPhotoStatus?.id_photo_status !== 0) 
       throw new Error(`La foto con ID ${photoId} no está en estado 'pendiente' y no puede ser procesada.`);
 
-
       const result = await this.sendSpeedEvent(
         speedEventParams.cruise,
         speedEventParams.timestamp,
         speedEventParams.speed_limit_kmh,
         speedEventParams.current_speed_kmh,
         speedEventParams.lpNumber,
-        speedEventParams.lpType
+        speedEventParams.lpType,
+        validatedPhotoStatus?.photo_name
       );
 
       if (!result.success) {
