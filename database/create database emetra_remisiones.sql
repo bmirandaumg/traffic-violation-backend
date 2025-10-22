@@ -57,9 +57,7 @@ create table public.photo
     id_cruise       integer                     not null
         constraint "FK_e8d953bfb8a752c0525856bde38"
             references public.cruise,
-    id_photo_status integer default 0           not null
-        constraint fk_photo_status
-            references public.photo_status,
+    id_photo_status integer default 0           not null,
     locked_by       integer,
     locked_at       timestamp,
     photo_date      timestamp                   not null,
@@ -86,17 +84,14 @@ create table public.photo_processing
     id              serial
         primary key,
     id_photo        integer     not null
-        constraint fk_photo_processing_photo
+        constraint "FK_4b9ce13146d82b296d389dd48b7"
             references public.photo,
     id_user         integer     not null
-        constraint fk_photo_processing_user
+        constraint "FK_f5172091e827fbc52c50844b7dc"
             references public.user_e,
     start_time      timestamp   not null,
     end_time        timestamp,
     processing_type varchar(20) not null
-        constraint photo_processing_processing_type_check
-            check ((processing_type)::text = ANY
-                   ((ARRAY ['success'::character varying, 'rejected'::character varying])::text[]))
 );
 
 alter table public.photo_processing
@@ -107,9 +102,8 @@ create table public.photo_success
     id                  serial
         primary key,
     processing_id       integer not null
-        constraint fk_photo_success_processing
-            references public.photo_processing
-            on delete cascade,
+        constraint "FK_7e2d71bc76fffc0ec631fa408cf"
+            references public.photo_processing,
     traffic_fine_id     integer,
     speed_event_payload jsonb
 );
@@ -122,14 +116,50 @@ create table public.photo_rejection
     id                  serial
         primary key,
     processing_id       integer not null
-        constraint fk_photo_rejection_processing
-            references public.photo_processing
-            on delete cascade,
+        constraint "FK_519d60cf81b8abc7e0da638cdd4"
+            references public.photo_processing,
     rejection_reason_id integer not null
-        constraint fk_photo_rejection_reason
+        constraint "FK_cf534e00ec98df73be737d29aca"
             references public.rejection_reason
 );
 
 alter table public.photo_rejection
+    owner to muniadmin;
+
+create table public.processed_photo
+(
+    id                  serial
+        constraint "PK_519bd1c399475368cb3cc152faa"
+            primary key,
+    start_time          timestamp not null,
+    end_time            timestamp,
+    id_photo            integer
+        constraint "FK_30108e78518ab41a8d18445e393"
+            references public.photo,
+    id_user             integer
+        constraint "FK_05b7dcb660cac2e67eb288eb027"
+            references public.user_e,
+    id_rejection_reason integer
+        constraint "FK_6f17d6344146927a4777ecfca57"
+            references public.rejection_reason
+);
+
+alter table public.processed_photo
+    owner to muniadmin;
+
+create table public.photo_rejected
+(
+    id                  serial
+        constraint "PK_c6ce3955f8bd6b1221f542ff342"
+            primary key,
+    "processedPhotoId"  integer not null
+        constraint "FK_bc48d1c1d5662d6277dd8725768"
+            references public.processed_photo,
+    "rejectionReasonId" integer not null
+        constraint "FK_60ee8ad572c0ee0d2e4a800c723"
+            references public.rejection_reason
+);
+
+alter table public.photo_rejected
     owner to muniadmin;
 
