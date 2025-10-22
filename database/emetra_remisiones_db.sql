@@ -163,3 +163,37 @@ create table public.photo_rejected
 alter table public.photo_rejected
     owner to muniadmin;
 
+INSERT INTO cruise (cruise_name) VALUES
+                                        ('Columpio_V_H_Oriente_Z_15'),
+                                        ('Anillo_Perferico_Sur_Z_11'),
+                                        ('Anillo_Periferico_Norte_Z_7'),
+                                        ('Anillo_Periferico_Sur_Z_7'),
+                                        ('Atanasio_Tzul_Norte_zona_12'),
+                                        ('Atanasio_Tzul_Sur_zona_12'),
+                                        ('7_avenida_zona_12'),
+                                        ('Av_Las_Americas_Norte_zona_14'),
+                                        ('2calle_Final_Oriente_Z_10'),
+                                        ('Avenida_Hincapie_Sur_Z_13');
+
+INSERT INTO photo_status (id,description) VALUES
+                                              (0,'No Procesada'),
+                                              (1,'Procesada exitosamente'),
+                                              (2,'Rechazada');
+
+SELECT setval('photo_status_id_seq', COALESCE((SELECT MAX(id) FROM photo_status), 0));
+
+INSERT INTO role (id,name,description) VALUES
+                                           (1,'admin','Gestionar Usuarios'),
+                                           (2,'digitador','Procesar Multas');
+
+SELECT setval('role_id_seq', COALESCE((SELECT MAX(id) FROM role), 0));
+
+INSERT INTO user_e (role_id, username, password, email)
+VALUES (
+  1,
+  '43274',
+  '$2b$10$cJ106y1VH1T2LmawRnz1NuCdJXvG7drli5yyDNhV.6ZnG./8mVU.a',
+  'admin@emetra.com'
+);
+
+SELECT setval('user_e_id_seq', COALESCE((SELECT MAX(id) FROM user_e), 0));
