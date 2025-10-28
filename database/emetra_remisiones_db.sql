@@ -10,7 +10,7 @@ alter table public.cruise
 
 create table public.photo_status
 (
-    id          integer default nextval('photo_status_id_seq'::regclass) not null
+    id          serial
         primary key,
     description varchar                                                  not null
 );
@@ -197,3 +197,13 @@ VALUES (
 );
 
 SELECT setval('user_e_id_seq', COALESCE((SELECT MAX(id) FROM user_e), 0));
+
+insert into rejection_reason (description) values
+                                               ('Información de placa no coincide'),
+                                               ('Vehículo sin placa'),
+                                               ('Imagen sin Información'),
+                                               ('Información de placa faltante');
+ALTER TABLE public.photo
+  ADD CONSTRAINT fk_photo_status
+  FOREIGN KEY (id_photo_status)
+  REFERENCES public.photo_status(id);
