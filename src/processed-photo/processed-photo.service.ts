@@ -45,7 +45,7 @@ export class ProcessedPhotoService {
     const hora = String(dateObj.getUTCHours()).padStart(2, '0');
     const minuto = String(dateObj.getUTCMinutes()).padStart(2, '0');
     const segundo = String(dateObj.getUTCSeconds()).padStart(2, '0');
-    const timestampFormateado = `${dia}-${mes}-${año}-${hora}-${minuto}-${segundo}`;
+    const timestampFormateado = `${dia}-${mes}-${año}-${hora}-${minuto}-${segundo}-0`;
 
     const urlProcessedPhoto = process.env.SPEED_EVENTS_URL;
     const rawFlag = process.env.SEND_PHOTO_NAME ?? '';
