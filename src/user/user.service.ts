@@ -61,33 +61,4 @@ export class UserService {
       throw new InternalServerErrorException('Error finding user by username');
     }
   }
-
-  // Encontrar un usuario por su ID
-  async findById(id: number): Promise<UserE | undefined> {
-    try {
-      const user = await this.userRepository.findOne({ where: { id } });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      return user;
-    } catch (error) {
-      console.error('Error finding user by ID:', error);
-      throw new InternalServerErrorException('Error finding user by ID');
-    }
-  }
-
-  // Obtener los roles de un usuario por su ID
-  async getUserRoles(userId: number): Promise<string[]> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['role'],  // Asegúrate de cargar la relación de roles
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    // Devuelve los nombres de los roles
-    return [user.role.name];  // Ajusta si tienes varios roles
-  }
 }

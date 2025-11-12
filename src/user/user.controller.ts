@@ -41,17 +41,6 @@ async getAllRoles() {
     }
   }
 
-  // Endpoint para buscar por ID
-  @Get(':id')
-  async findById(@Param('id') id: number) {
-    try {
-      return await this.userService.findById(id);
-    } catch (error) {
-      console.error('Error finding user by ID:', error);
-      throw new Error('Error finding user by ID');
-    }
-  }
-
   @Delete('by-username/:username')
   async deleteUser(@Param('username') username: string): Promise<void> {
     try {
