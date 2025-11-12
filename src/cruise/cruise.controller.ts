@@ -20,11 +20,6 @@ export class CruiseController {
     return this.cruiseService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cruiseService.findOne(+id);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCruiseDto: UpdateCruiseDto) {
     return this.cruiseService.update(+id, updateCruiseDto);

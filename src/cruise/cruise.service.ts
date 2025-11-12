@@ -1,33 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException,NotFoundException } from '@nestjs/common';
 import { CreateCruiseDto } from './dto/create-cruise.dto';
 import { UpdateCruiseDto } from './dto/update-cruise.dto';
 import { Repository } from 'typeorm';
 import {Cruise } from './entities/cruise.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Photo } from 'src/photo/photo.entity';
+
+
  
 @Injectable()
 export class CruiseService {
   constructor(
     @InjectRepository(Cruise)
     private readonly cruiseRepository: Repository<Cruise>,
+    @InjectRepository(Photo)
+  private readonly photoRepository: Repository<Photo>, 
   ) {}
   create(createCruiseDto: CreateCruiseDto) {
-    return 'This action adds a new cruise';
+    return this.cruiseRepository.save(createCruiseDto);
   }
   
    async findAll(): Promise<Cruise[]> {
     return this.cruiseRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cruise`;
-  }
-
   update(id: number, updateCruiseDto: UpdateCruiseDto) {
-    return `This action updates a #${id} cruise`;
+    return this.cruiseRepository.update(id, updateCruiseDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} cruise`;
+  async remove(id: number) {
+    const photoCount = await this.photoRepository.count({ where: { cruise: { id } } });
+    if (photoCount > 0) {
+      throw new ConflictException('No se puede eliminar porque existen fotos ligadas a este crucero.');
+    }
+    const deleteResult = await this.cruiseRepository.delete(id);
+    if (!deleteResult.affected) {
+      throw new NotFoundException(`Crucero ${id} no existe`);
+    }
+    return { message: 'Crucero eliminado' };
   }
 }
