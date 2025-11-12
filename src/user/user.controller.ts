@@ -52,10 +52,10 @@ async getAllRoles() {
     }
   }
 
-  @Delete(':id')
-  async deleteUser(@Param('id') id: number): Promise<void> {
+  @Delete('by-username/:username')
+  async deleteUser(@Param('username') username: string): Promise<void> {
     try {
-      await this.userService.deleteUser(id);
+      await this.userService.deleteUser(username);
     } catch (error) {
       console.error('Error deleting user:', error);
       throw new Error('Error deleting user');

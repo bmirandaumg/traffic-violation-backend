@@ -40,10 +40,10 @@ export class UserService {
     return this.roleRepository.find();
   }
   
-    async deleteUser(id: number): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    async deleteUser(username:string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
     await this.userRepository.remove(user);
   }
