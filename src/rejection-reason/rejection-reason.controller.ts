@@ -24,10 +24,4 @@ export class RejectionReasonController {
   async findAll() {
     return this.rejectionReasonService.findAll();
   }
-
-  // Obtener un motivo de rechazo por ID
-  @Get(':id')
-  async findById(@Param('id') id: number) {
-    return this.rejectionReasonService.findById(id);
-  }
 }

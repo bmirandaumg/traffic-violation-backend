@@ -29,13 +29,4 @@ export class RejectionReasonService {
   async findAll(): Promise<RejectionReason[]> {
     return this.rejectionReasonRepository.find();
   }
-
-  // Get a rejected reason by ID
-  async findById(id: number): Promise<RejectionReason> {
-    const reason = await this.rejectionReasonRepository.findOne({ where: { id } });
-    if (!reason) {
-      throw new NotFoundException('Rejection reason not found');
-    }
-    return reason;
-  }
 }
