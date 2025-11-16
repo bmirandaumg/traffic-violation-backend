@@ -126,43 +126,6 @@ create table public.photo_rejection
 alter table public.photo_rejection
     owner to muniadmin;
 
-create table public.processed_photo
-(
-    id                  serial
-        constraint "PK_519bd1c399475368cb3cc152faa"
-            primary key,
-    start_time          timestamp not null,
-    end_time            timestamp,
-    id_photo            integer
-        constraint "FK_30108e78518ab41a8d18445e393"
-            references public.photo,
-    id_user             integer
-        constraint "FK_05b7dcb660cac2e67eb288eb027"
-            references public.user_e,
-    id_rejection_reason integer
-        constraint "FK_6f17d6344146927a4777ecfca57"
-            references public.rejection_reason
-);
-
-alter table public.processed_photo
-    owner to muniadmin;
-
-create table public.photo_rejected
-(
-    id                  serial
-        constraint "PK_c6ce3955f8bd6b1221f542ff342"
-            primary key,
-    "processedPhotoId"  integer not null
-        constraint "FK_bc48d1c1d5662d6277dd8725768"
-            references public.processed_photo,
-    "rejectionReasonId" integer not null
-        constraint "FK_60ee8ad572c0ee0d2e4a800c723"
-            references public.rejection_reason
-);
-
-alter table public.photo_rejected
-    owner to muniadmin;
-
 INSERT INTO cruise (cruise_name) VALUES
                                         ('Columpio_V_H_Oriente_Z_15'),
                                         ('Anillo_Perferico_Sur_Z_11'),
@@ -207,3 +170,8 @@ ALTER TABLE public.photo
   ADD CONSTRAINT fk_photo_status
   FOREIGN KEY (id_photo_status)
   REFERENCES public.photo_status(id);
+
+ALTER TABLE public.photo
+ADD CONSTRAINT fk_photo_id_photo_status
+FOREIGN KEY (id_photo_status)
+REFERENCES public.photo_status(id);
